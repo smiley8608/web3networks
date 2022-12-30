@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Web3 from "web3";
 
 const Connectnetworks = () => {
@@ -7,9 +7,10 @@ const Connectnetworks = () => {
   const GoerliTestnet = 5;
   const BSCTestnet = 97;
   const PolygonTestnet = 80001;
-  const EthereumMainnet=1;
+  const EthereumMainnet = 1;
 
-  
+  const [currentAccount, setCurrentAccount] = useState<any>();
+
   const connectwallet = async (chainId: any) => {
     console.log(chainId);
 
@@ -29,7 +30,7 @@ const Connectnetworks = () => {
   };
   const switchNetworks = async (chainId: any) => {
     const currentchainid = await web3.eth.getChainId();
-    console.log(`current chain id: ${currentchainid}`);;
+    console.log(`currentchain id: ${currentchainid}`);
 
     if (currentchainid !== chainId) {
       try {
@@ -41,7 +42,13 @@ const Connectnetworks = () => {
             },
           ],
         });
-       
+
+        const accounts = await web3.givenProvider.request({
+          method: "eth_requestAccounts",
+        });
+        console.log(accounts);
+
+        setCurrentAccount(accounts[0]);
       } catch (error: any) {
         // console.log(error);
         if (error.code === 4902) {
@@ -58,8 +65,7 @@ const Connectnetworks = () => {
                     decimals: 18,
                   },
                   rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
-                  blockExplorerUrls: ["https://mumbai.polygonscan.com/"]
-                  
+                  blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
                 },
               ],
             });
@@ -70,11 +76,24 @@ const Connectnetworks = () => {
           console.log("error code not equal to 4902");
         }
       }
+    } else {
+      return console.log("You are in the same Network");
     }
   };
-  useEffect(()=>{
-    getCurrentchainId()
-  },[])
+  
+  const logout = async () => {
+    const accounts = await web3.givenProvider.request({
+      method: "eth_accounts",
+    });
+    if (accounts.length) {
+    }
+    console.log(accounts);
+
+    setCurrentAccount(accounts[0]);
+  };
+  useEffect(() => {
+    getCurrentchainId();
+  }, []);
   //   const PolygonDetails={
   //     chainId: web3.utils.toHex(PolygonTestnet), // A 0x-prefixed hexadecimal string
   //   chainName: 'Polygon Mainnet',
@@ -86,24 +105,30 @@ const Connectnetworks = () => {
   //   rpcUrls:['https://rpc-mumbai.maticvigil.com'],
   //   blockExplorerUrls: ['https://polygonscan.com'],
   //   iconUrls: [''],
-//   Network name
-// Matic Testnet RPC
-// Network URL
-// https://rpc-mumbai.maticvigil.com
-// Chain ID
-// 80001
-// Currency symbol
-// MATIC
-// Block explorer URL
-// https://mumbai.polygonscan.com/
+  //   Network name
+  // Matic Testnet RPC
+  // Network URL
+  // https://rpc-mumbai.maticvigil.com
+  // Chain ID
+  // 80001
+  // Currency symbol
+  // MATIC
+  // Block explorer URL
+  // https://mumbai.polygonscan.com/
   //   }
 
   return (
     <div>
       <button onClick={() => connectwallet(GoerliTestnet)}>goreli</button>
       <button onClick={() => connectwallet(BSCTestnet)}>bsc-testnet</button>
-        <button onClick={()=>connectwallet(EthereumMainnet)}>Ethereum Mainnet</button>
-      <button onClick={() => connectwallet(PolygonTestnet)}>PolygonTestNet</button>
+      <button onClick={() => connectwallet(EthereumMainnet)}>
+        Ethereum Mainnet
+      </button>
+      <button onClick={() => connectwallet(PolygonTestnet)}>
+        PolygonTestNet
+      </button>
+      <button onClick={() => logout()}>LogOut</button>
+      {}
     </div>
   );
 };

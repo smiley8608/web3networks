@@ -2,7 +2,7 @@ import { METHODS } from "http";
 import { useEffect, useState } from "react";
 import Web3 from "web3";
 
-const web3 = new Web3("https://data-seed-prebsc-1-s1.binance.org:8545");
+
 
 const BSCToken = ({ address }: any) => {
   const contractABI: any = [
@@ -241,18 +241,24 @@ const BSCToken = ({ address }: any) => {
       type: "function",
     },
   ];
-
+  
+  const { ethereum }: any = window;
+  const web3 = new Web3(ethereum);
+  const BSCTestnet = 97; 
   const [token, setToken] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const getAToken = async () => {
     try {
+      console.log('runner');
+      web3.setProvider("https://data-seed-prebsc-1-s1.binance.org:8545/")
       const contract = new web3.eth.Contract(contractABI, address);
-
-      const [name, symbol, decimals] = await Promise.all([
-        contract.methods.name().call(),
-        contract.methods.symbol().call(),
-        contract.methods.decimals().call(),
-      ]);
+      console.log(await contract.methods._name().call());
+      
+      const [name, symbol, decimals] =[
+        await contract.methods.name().call(),
+        await contract.methods.symbol().call(),
+        await contract.methods.decimals().call(),
+      ];
       setToken({ name, symbol, decimals });
       console.log([name, symbol, decimals]);
     } catch (error) {
@@ -261,27 +267,49 @@ const BSCToken = ({ address }: any) => {
     }
   };
 
-  const addToken = async () => {
+  const addToken = async (chainId:any) => {
     setLoading(true);
     try {
-      const { ethereum }: any = window;
       if (!ethereum) {
         console.log("please install metamask!");
       } else {
-        await ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        await ethereum.request({
-          method: "wallet_watchAsset",
-          params: {
-            type: "ERC20",
-            options: {
-              address,
-              symbol: token.symbol,
-              decimals: token.decimals,
+        const currentchainid=web3.eth.getChainId()
+        if(currentchainid !==chainId){
+          await ethereum.request({method:'wallet_switchEthereumChain',params:[{
+            chainId:web3.utils.toHex(chainId)
+          }]})
+          await ethereum.request({
+            method: "eth_requestAccounts",
+          });
+          await ethereum.request({
+            method: "wallet_watchAsset",
+            params: {
+              type: "ERC20",
+              options: {
+                address,
+                symbol: token.symbol,
+                decimals: token.decimals,
+              },
             },
-          },
-        });
+          });
+        }else{
+          await ethereum.request({
+            method: "eth_requestAccounts",
+          });
+          await ethereum.request({
+            method: "wallet_watchAsset",
+            params: {
+              type: "ERC20",
+              options: {
+                address,
+                symbol: token.symbol,
+                decimals: token.decimals,
+              },
+            },
+          });
+
+        }
+       
       }
     } catch (error) {
       console.log(error);
@@ -295,9 +323,12 @@ const BSCToken = ({ address }: any) => {
 
   return (
     <div>
-      <button onClick={addToken} disabled={loading ||!Boolean(token)}>
+      <div>
+
+      <button onClick={()=>addToken(BSCTestnet)} disabled={loading ||!Boolean(token)}>
         {(token && `add ${token.name}`) || "loading..."}
       </button>
+      </div>
     </div>
   );
 };

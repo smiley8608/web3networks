@@ -2,9 +2,7 @@ import { use } from "chai";
 import { useEffect, useState } from "react";
 import Web3 from "web3";
 
-const web3 = new Web3(
-  "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
-);
+
 
 const ImportToken = ({ address }: any) => {
   const contractABI: any = [
@@ -238,7 +236,13 @@ const ImportToken = ({ address }: any) => {
   ];
   const [token, setToken] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const GoerliTestnet= 5;
+  const { ethereum }: any = window;
+  const web3 = new Web3(
+  ethereum
+    );
   const getAToken = async () => {
+    web3.setProvider('https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
     const contract = new web3.eth.Contract(contractABI, address);
 
     const [name, symbol, decimals] = await Promise.all([
@@ -249,22 +253,41 @@ const ImportToken = ({ address }: any) => {
     setToken({ name, symbol, decimals });
     console.log([name, symbol, decimals]);
   };
-  const addToken = async () => {
+  const addToken = async (chainId:any) => {
     setLoading(true);
     try {
-      const { ethereum }: any = window;
       if (!ethereum) {
         return console.log("please install matamask");
       } else {
-        await ethereum.request({ method: "eth_requestAccounts" });
-        await ethereum.request({ method: "wallet_watchAsset", params: {
+        const currentchainid =await web3.eth.getChainId()
+        console.log("currentchain",currentchainid);
+        
+        if(currentchainid !==chainId){
+          await ethereum.request({method:'wallet_switchEthereumChain',params:[{
+            chainId:web3.utils.toHex(chainId)
+          }]})
+          await ethereum.request({ method: "wallet_watchAsset", params: {
             type:'ERC20',
             options:{
-                address,
-                symbol:token.symbol,
-                decimals:token.decimals
+              address,
+              symbol:token.symbol,
+              decimals:token.decimals
             }
-        } });
+          } });
+          await ethereum.request({ method: "eth_requestAccounts" });
+        }else{
+          await ethereum.request({ method: "eth_requestAccounts" });
+          await ethereum.request({ method: "wallet_watchAsset", params: {
+              type:'ERC20',
+              options:{
+                  address,
+                  symbol:token.symbol,
+                  decimals:token.decimals
+              }
+          } });
+
+        }
+        
       }
     } catch (error) {
       console.log(error);
@@ -276,7 +299,7 @@ const ImportToken = ({ address }: any) => {
   }, []);
   return (
     <div>
-      <button onClick={addToken} disabled={loading ||!Boolean(token)}>{(token && `Add ${token.name}`)|| 'loading...'}</button>
+      <button onClick={()=>addToken(GoerliTestnet)} disabled={loading ||!Boolean(token)}>{(token && `Add ${token.name}`)|| 'loading...'}</button>
     </div>
   );
 };
