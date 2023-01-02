@@ -299,7 +299,10 @@ const ImportToken = ({ address }: any) => {
   }, []);
   return (
     <div>
-      <button onClick={()=>addToken(GoerliTestnet)} disabled={loading ||!Boolean(token)}>{(token && `Add ${token.name}`)|| 'loading...'}</button>
+      <div className="flex justify-center mt-10">
+      <button onClick={()=>addToken(GoerliTestnet)} disabled={loading ||!Boolean(token)} className="bg-black p-4  rounded-lg text-white">{(token && `Add ${token.name}`)|| 'loading...'}</button>
+
+      </div>
     </div>
   );
 };

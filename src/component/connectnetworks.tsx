@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Web3 from "web3";
 
-const Connectnetworks = () => {
+const Connectnetworks = ({setchainId}:any) => {
   const { ethereum }: any = window;
   const web3 = new Web3(ethereum);
   const GoerliTestnet = 5;
@@ -42,11 +42,11 @@ const Connectnetworks = () => {
             },
           ],
         });
-
+        setchainId(chainId)
         const accounts = await web3.givenProvider.request({
           method: "eth_requestAccounts",
         });
-        console.log(accounts);
+        //  alert(accounts);
 
         setCurrentAccount(accounts[0]);
       } catch (error: any) {
@@ -69,6 +69,7 @@ const Connectnetworks = () => {
                 },
               ],
             });
+            setchainId(PolygonTestnet)
           } catch (error) {
             console.log(error);
           }
@@ -94,41 +95,19 @@ const Connectnetworks = () => {
   useEffect(() => {
     getCurrentchainId();
   }, []);
-  //   const PolygonDetails={
-  //     chainId: web3.utils.toHex(PolygonTestnet), // A 0x-prefixed hexadecimal string
-  //   chainName: 'Polygon Mainnet',
-  //   nativeCurrency: {
-  //     name: 'MATIC',
-  //     symbol: 'MATIC', // 2-6 characters long
-  //     decimals: 18,
-  //   },
-  //   rpcUrls:['https://rpc-mumbai.maticvigil.com'],
-  //   blockExplorerUrls: ['https://polygonscan.com'],
-  //   iconUrls: [''],
-  //   Network name
-  // Matic Testnet RPC
-  // Network URL
-  // https://rpc-mumbai.maticvigil.com
-  // Chain ID
-  // 80001
-  // Currency symbol
-  // MATIC
-  // Block explorer URL
-  // https://mumbai.polygonscan.com/
-  //   }
-
+ 
   return (
-    <div>
-      <button onClick={() => connectwallet(GoerliTestnet)}>goreli</button>
-      <button onClick={() => connectwallet(BSCTestnet)}>bsc-testnet</button>
-      <button onClick={() => connectwallet(EthereumMainnet)}>
+    <div className="w-full p-3 bg-slate-700 flex justify-end gap-5 ">
+      <button onClick={() => connectwallet(GoerliTestnet)} className='bg-blue-700 rounded-full p-4 active:bg-yellow-400  '>goreli</button>
+      <button onClick={() => connectwallet(BSCTestnet)} className='bg-blue-700 rounded-full p-4 active:bg-yellow-400  '>bsc-testnet</button>
+      <button onClick={() => connectwallet(EthereumMainnet)} className='bg-blue-700 rounded-full p-4 active:bg-yellow-400  '>
         Ethereum Mainnet
       </button>
-      <button onClick={() => connectwallet(PolygonTestnet)}>
+      <button onClick={() => connectwallet(PolygonTestnet)} className='bg-blue-700 rounded-full p-4 active:bg-yellow-400  '>
         PolygonTestNet
       </button>
-      <button onClick={() => logout()}>LogOut</button>
-      {}
+      {/* <button onClick={() => logout()}>LogOut</button> */}
+      
     </div>
   );
 };

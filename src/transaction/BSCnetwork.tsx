@@ -1,19 +1,20 @@
 import { FormEvent, useEffect, useState } from "react";
 import Web3 from "web3";
 import config from "../config";
+import convert from "../functions/convert";
 // import { ethers } from "ethers";
 
 const BSCNetwork = () => {
   const { ethereum }: any = window;
   const web3 = new Web3(ethereum);
-
+  const BSCTestnet=97
   const [data, setData] = useState<any>({});
   const [currentAccount, setCurrentAccount] = useState("");
   const [chainId, setchainId] = useState<number>();
 
   const createContract = async () => {
     await  web3.setProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
-    
+   
     // console.log(ethereum);
     
     const contract = new web3.eth.Contract(config.bsc.contractABI,config.bsc.contractaddress)
@@ -24,7 +25,7 @@ const BSCNetwork = () => {
 
   const getchainId = async () => {
     const currentchainid = await web3.eth.getChainId();
-    console.log(currentchainid);
+    // alert(`chain_id:${currentchainid}`);
     setchainId(currentchainid);
   };
 
@@ -32,13 +33,13 @@ const BSCNetwork = () => {
     if(!ethereum){
         return console.log('Connectionerror')
     }else{
-        const Contract = createContract()
-        console.log(Contract);
+      
         const accounts = await ethereum.request({
           method: "eth_requestAccounts",
         });
-        console.log(accounts);
+        console.log(`Addresss:${accounts}`);
         setCurrentAccount(accounts[0]);
+        localStorage.setItem('connectAddress',accounts[0])
       };
     }
 
@@ -51,34 +52,41 @@ const BSCNetwork = () => {
       return console.log("please install metamask");
     } else {
       try {
-        console.log(data.recipient, data.amount);
+        console.log(data.recipient,typeof data.amount);
 
         const Contract = await createContract()
-        console.log(await Contract.methods.transfer(data.recipient, data.amount).call());
+        console.log(Contract);
+        
+        // console.log(await Contract.methods.transfer(data.recipient, data.amount).call());
         // const parsedAmount= web3.utils.toHex(data.amount)
-         const contractData = await Contract.methods.transfer(data.recipient, data.amount).call((err:any,txhash:any)=>{
-            if(err){
-                console.log(err);
-                
-            }else{
-                console.log(txhash);
-                
-                return txhash
-            }
-            
-         })
-        // await ethereum.request({
-        //   method: "eth_sendTransaction",
-        //   params: [
-        //     {
-        //       from: currentAccount,
-        //       to: config.bsc.contractaddress,
-        //       gas: "0x5208",
-        //       data: contractData,
-        //     },
-        //   ]
-        // });
-        console.log(contractData);
+        const value=Number(data.amount)
+        console.log(data.recipient);
+        
+        // const parsedAmount=data.amount
+        // console.log(typeof parsedAmount);
+        console.log(data.amount);
+        // console.log(await Contract.methods.transfer(data.recipient, parsedAmount).send({from:currentAccount}));
+        
+        //  const contractData = await Contract.methods.transfer(data.recipient,web3.utils.fromWei(data.amount, "wei")).call({from:currentAccount})
+        //  console.log(typeof contractData);
+        // console.log(convert(data.amount));
+        
+         
+      const transactionhash=  await ethereum.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from:currentAccount,
+              to: config.bsc.contractaddress,
+              gas:String(0x5208),
+              data: Contract.methods.transfer(data.recipient, data.amount).encodeABI(),
+              chainId: chainId,
+            },
+          ]
+        });
+        // console.log(contractData);
+        console.log(transactionhash);
+        
         
 
         //    const transactionhash= await transaction.wait()
@@ -101,13 +109,14 @@ const BSCNetwork = () => {
     
   };
   useEffect(() => {
-    // getchainId();
+    getchainId();
+  
     
   }, []);
   return (
     <div>
       <div className="w-full text-center mt-3">
-        <h1 className="font-bold text-xl">Transaction </h1>
+        <h1 className="font-bold text-xl">BSC Transaction </h1>
       </div>
       <div className="w-full flex justify-center mt-8">
         <div>
@@ -136,11 +145,15 @@ const BSCNetwork = () => {
                 className="border p-3 rounded-lg ml-20"
               />
             </div>
-            <button className="bg-black p-4 h-5 mt-14 ml-7">ClickMe</button>
+            <div className="flex justify-center mt-10 gap-x-14">
+
+            <button className="bg-black p-4  rounded-lg text-white">ClickMe</button>
+            <button onClick={getAddress} className="bg-black p-4  rounded-lg text-white">getAddress</button>
+            </div>
           </form>
         </div>
       </div>
-      <button onClick={getAddress}>getAddress</button>
+      
     </div>
   );
 };

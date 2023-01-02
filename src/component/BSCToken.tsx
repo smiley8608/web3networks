@@ -323,9 +323,9 @@ const BSCToken = ({ address }: any) => {
 
   return (
     <div>
-      <div>
+      <div className="flex justify-center mt-10">
 
-      <button onClick={()=>addToken(BSCTestnet)} disabled={loading ||!Boolean(token)}>
+      <button onClick={()=>addToken(BSCTestnet)} disabled={loading ||!Boolean(token)} className="bg-black p-4  rounded-lg text-white">
         {(token && `add ${token.name}`) || "loading..."}
       </button>
       </div>
