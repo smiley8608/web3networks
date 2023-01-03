@@ -23,7 +23,36 @@ const Goeril = () => {
 
     return contract;
   };
+  function convert(n:any) {
+    n=Number(n)
+    console.log(typeof n);
+    console.log(n);
+    
+    
+    var sign = +n < 0 ? "-" : "",
+      toStr = n.toString();
+    if (!/e/i.test(toStr)) {
+      return n;
+    }
+    var [lead, decimal, pow] = n
+      .toString()
+      .replace(/^-/, "")
+      .replace(/^([0-9]+)(e.*)/, "$1.$2")
+      .split(/e|\./);
+    return +pow < 0
+      ? sign +
+          "0." +
+          "0".repeat(Math.max(Math.abs(pow) - 1 || 0, 0)) +
+          lead +
+          decimal
+      : sign +
+          lead +
+          (+pow >= decimal.length
+            ? decimal + "0".repeat(Math.max(+pow - decimal.length || 0, 0))
+            : decimal.slice(0, +pow) + "." + decimal.slice(+pow));
+  }
 
+  
   const getchainId = async () => {
     const currentchainid = await web3.eth.getChainId();
     console.log(currentchainid);
@@ -34,8 +63,11 @@ const Goeril = () => {
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
     });
-    setCurrentAccount(accounts[0]);
-    // alert(`accounts:${currentAccount}`);
+    
+    await setCurrentAccount(accounts[0]);
+    
+    console.log(accounts[0]);
+    alert(`accounts:${accounts[0]}`);
   };
   const sendTransaction = async () => {
     if (!ethereum) {
@@ -46,7 +78,7 @@ const Goeril = () => {
         console.log( data.recipient,data.amount,currentAccount);
 
         const Contract = createContract();
-        console.log(Contract);
+        // console.log(Contract);
         // const contractdata = await Contract.methods
         //   .transfer(data.recipient, web3.utils.fromWei(data.amount, "wei"))
         //   .call({ from: currentAccount });
@@ -58,18 +90,13 @@ const Goeril = () => {
               from: currentAccount,
               to: config.goerli.contractaddress,
               gas: String(0x5208),
-              data: Contract.methods
-                .transfer(
-                  data.recipient,
-                  web3.utils.fromWei(data.amount, "wei")
-                )
-                .encodeABI(),
+              data: Contract.methods.transfer(data.recipient,web3.utils.fromWei(convert(data.amount), "ether")).encodeABI(),
               chainId: chainId,
             },
           ],
         });
         console.log(transactionhash);
-        await transactionhash.wait()
+        //  transactionhash.wait()
         alert(`success${transactionhash}`)
         
 
@@ -86,8 +113,8 @@ const Goeril = () => {
   };
   useEffect(() => {
     getchainId();
-    getAddress();
-  }, []);
+    // getAddress();
+  }, [currentAccount]);
   return (
     <div>
       <div className="w-full text-center mt-3">

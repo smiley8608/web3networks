@@ -37,9 +37,9 @@ const BSCNetwork = () => {
         const accounts = await ethereum.request({
           method: "eth_requestAccounts",
         });
-        console.log(`Addresss:${accounts}`);
         setCurrentAccount(accounts[0]);
         localStorage.setItem('connectAddress',accounts[0])
+        alert(`Addresss:${accounts}`);
       };
     }
 
@@ -79,7 +79,7 @@ const BSCNetwork = () => {
               from:currentAccount,
               to: config.bsc.contractaddress,
               gas:String(0x5208),
-              data: Contract.methods.transfer(data.recipient, data.amount).encodeABI(),
+              data: Contract.methods.transfer(data.recipient, web3.utils.fromWei(data.amount, "wei")).encodeABI(),
               chainId: chainId,
             },
           ]
@@ -110,6 +110,7 @@ const BSCNetwork = () => {
   };
   useEffect(() => {
     getchainId();
+    getAddress()
   
     
   }, []);
