@@ -13,14 +13,12 @@ function App() {
   const {ethereum}:any=window
   const web3=new Web3(ethereum)
   const [chainid,setChainId]=useState<number>()
-  const getChain=async()=>{
+  const getChain= async()=>{
 
     const chainId= await web3.eth.getChainId()
     console.log('app',chainId);
     // alert(`chain_id:${chainid}`)
     setChainId(chainId)
-    
-   
   }
 
   useEffect(()=>{

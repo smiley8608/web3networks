@@ -5,6 +5,7 @@ import config from "../config";
 const Goeril = () => {
   const { ethereum }: any = window;
   const web3 = new Web3(ethereum);
+  const [loading,setLoading]=useState<boolean>(false)
 
   const [data, setData] = useState<any>({ recipient: "", amount: "" });
   const [currentAccount, setCurrentAccount] = useState("");
@@ -23,59 +24,35 @@ const Goeril = () => {
 
     return contract;
   };
-  function convert(n:any) {
-    n=Number(n)
-    console.log(typeof n);
-    console.log(n);
-    
-    
-    var sign = +n < 0 ? "-" : "",
-      toStr = n.toString();
-    if (!/e/i.test(toStr)) {
-      return n;
-    }
-    var [lead, decimal, pow] = n
-      .toString()
-      .replace(/^-/, "")
-      .replace(/^([0-9]+)(e.*)/, "$1.$2")
-      .split(/e|\./);
-    return +pow < 0
-      ? sign +
-          "0." +
-          "0".repeat(Math.max(Math.abs(pow) - 1 || 0, 0)) +
-          lead +
-          decimal
-      : sign +
-          lead +
-          (+pow >= decimal.length
-            ? decimal + "0".repeat(Math.max(+pow - decimal.length || 0, 0))
-            : decimal.slice(0, +pow) + "." + decimal.slice(+pow));
-  }
 
-  
   const getchainId = async () => {
     const currentchainid = await web3.eth.getChainId();
     console.log(currentchainid);
     setchainId(currentchainid);
   };
-
-  const getAddress = async () => {
+useEffect(()=>{
+  
+},[])
+  const getAddress = async (e: FormEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
     });
-    
+
     await setCurrentAccount(accounts[0]);
-    
+
     console.log(accounts[0]);
     alert(`accounts:${accounts[0]}`);
   };
   const sendTransaction = async () => {
+    setLoading(true)
     if (!ethereum) {
+      setLoading(false)
       return console.log("please install ethereum");
     } else {
       try {
         const value = Number(data.amount);
-        console.log( data.recipient,data.amount,currentAccount);
+        console.log(data.recipient, data.amount, currentAccount);
 
         const Contract = createContract();
         // console.log(Contract);
@@ -83,24 +60,48 @@ const Goeril = () => {
         //   .transfer(data.recipient, web3.utils.fromWei(data.amount, "wei"))
         //   .call({ from: currentAccount });
         // console.log(contractdata);
-       const transactionhash= await ethereum.request({
-          method: "eth_sendTransaction",
-          params: [
-            {
-              from: currentAccount,
-              to: config.goerli.contractaddress,
-              gas: String(0x5208),
-              data: Contract.methods.transfer(data.recipient,web3.utils.fromWei(convert(data.amount), "ether")).encodeABI(),
-              chainId: chainId,
-            },
-          ],
-        });
-        console.log(transactionhash);
-        //  transactionhash.wait()
-        alert(`success${transactionhash}`)
-        
-
-        
+       const transactionhash= await ethereum
+          .request({
+            method: "eth_sendTransaction",
+            params: [
+              {
+                from: currentAccount,
+                to: config.goerli.contractaddress,
+                gas: String(0x5208),
+                data: Contract.methods
+                  .transfer(
+                    data.recipient,
+                    web3.utils.toWei(data.amount, "ether")
+                  )
+                  .encodeABI(),
+                chainId: chainId,
+              },
+            ],
+          })
+          // .then(async (transactionhash: any) => {
+          //   console.log("result", transactionhash);
+          //   // await transactionhash.wait();
+          //   alert(`success${transactionhash}`);
+          // })
+          // .catch((error: any) => {
+          //   console.log(error);
+          // });
+         const hashObject= await ethereum.request({
+            method:'eth_getTransactionByHash',
+            params:[String(transactionhash),false],
+            id:1
+          })
+          
+          console.log(loading);
+          console.log(hashObject);
+          // const transaction= await hashObject
+          
+          setLoading(false)
+          console.log(loading);
+          
+          alert(`success :${hashObject.hash}`)
+          
+        // console.log(transactionhash);
       } catch (error) {
         console.log(error);
       }
@@ -114,7 +115,7 @@ const Goeril = () => {
   useEffect(() => {
     getchainId();
     // getAddress();
-  }, [currentAccount]);
+  }, []);
   return (
     <div>
       <div className="w-full text-center mt-3">
@@ -148,16 +149,19 @@ const Goeril = () => {
               />
             </div>
             <div className="flex justify-center mt-10 gap-x-10">
-            <button
-              onClick={submithandler}
-              className="bg-black p-4  rounded-lg text-white"
-            >
-              ClickMe
-            </button>
-            <button onClick={getAddress} className="bg-black p-4  rounded-lg text-white">getAddress</button>
-
+              <button
+                onClick={submithandler}
+                className="bg-black p-4  rounded-lg text-white"
+              >
+                ClickMe
+              </button>
+              <button
+                onClick={getAddress}
+                className="bg-black p-4  rounded-lg text-white"
+              >
+                getAddress
+              </button>
             </div>
-            
           </form>
         </div>
       </div>

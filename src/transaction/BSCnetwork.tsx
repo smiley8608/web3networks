@@ -29,7 +29,8 @@ const BSCNetwork = () => {
     setchainId(currentchainid);
   };
 
-  const getAddress = async () => {
+  const getAddress = async (e:FormEvent<HTMLButtonElement>) => {
+    e.preventDefault()
     if(!ethereum){
         return console.log('Connectionerror')
     }else{
@@ -46,7 +47,7 @@ const BSCNetwork = () => {
 
 
 
-  const sendTransaction = async () => {
+  const sendTransaction = async() => {
     
     if (!ethereum) {
       return console.log("please install metamask");
@@ -72,25 +73,31 @@ const BSCNetwork = () => {
         // console.log(convert(data.amount));
         
          
-      const transactionhash=  await ethereum.request({
+       await ethereum.request({
           method: "eth_sendTransaction",
           params: [
             {
               from:currentAccount,
               to: config.bsc.contractaddress,
               gas:String(0x5208),
-              data: Contract.methods.transfer(data.recipient, web3.utils.fromWei(data.amount, "wei")).encodeABI(),
+              data: Contract.methods.transfer(data.recipient, web3.utils.toWei(data.amount, "ether")).encodeABI(),
               chainId: chainId,
             },
           ]
-        });
+        }).then((transactionhash:any)=>{
+          console.log(transactionhash);
+             alert(`success : ${transactionhash}`)
+
+        })
+        .catch((error:any)=>{
+          console.log(error);
+          
+        })
         // console.log(contractData);
-        console.log(transactionhash);
         
         
 
         //    const transactionhash= await transaction.wait()
-        //    alert(`success : ${transaction.hash}`)
       } catch (error) {
         console.log(error);
       }
@@ -110,7 +117,7 @@ const BSCNetwork = () => {
   };
   useEffect(() => {
     getchainId();
-    getAddress()
+    // getAddress()
   
     
   }, []);

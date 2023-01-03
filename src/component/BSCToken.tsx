@@ -2,8 +2,6 @@ import { METHODS } from "http";
 import { useEffect, useState } from "react";
 import Web3 from "web3";
 
-
-
 const BSCToken = ({ address }: any) => {
   const contractABI: any = [
     { inputs: [], stateMutability: "nonpayable", type: "constructor" },
@@ -241,20 +239,20 @@ const BSCToken = ({ address }: any) => {
       type: "function",
     },
   ];
-  
+
   const { ethereum }: any = window;
   const web3 = new Web3(ethereum);
-  const BSCTestnet = 97; 
+  const BSCTestnet = 97;
   const [token, setToken] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const getAToken = async () => {
     try {
-      console.log('runner');
-      web3.setProvider("https://data-seed-prebsc-1-s1.binance.org:8545/")
+      console.log("runner");
+      web3.setProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
       const contract = new web3.eth.Contract(contractABI, address);
       console.log(await contract.methods._name().call());
-      
-      const [name, symbol, decimals] =[
+
+      const [name, symbol, decimals] = [
         await contract.methods.name().call(),
         await contract.methods.symbol().call(),
         await contract.methods.decimals().call(),
@@ -267,17 +265,22 @@ const BSCToken = ({ address }: any) => {
     }
   };
 
-  const addToken = async (chainId:any) => {
+  const addToken = async (chainId: any) => {
     setLoading(true);
     try {
       if (!ethereum) {
         console.log("please install metamask!");
       } else {
-        const currentchainid=web3.eth.getChainId()
-        if(currentchainid !==chainId){
-          await ethereum.request({method:'wallet_switchEthereumChain',params:[{
-            chainId:web3.utils.toHex(chainId)
-          }]})
+        const currentchainid = web3.eth.getChainId();
+        if (currentchainid !== chainId) {
+          await ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [
+              {
+                chainId: web3.utils.toHex(chainId),
+              },
+            ],
+          });
           await ethereum.request({
             method: "eth_requestAccounts",
           });
@@ -292,7 +295,7 @@ const BSCToken = ({ address }: any) => {
               },
             },
           });
-        }else{
+        } else {
           await ethereum.request({
             method: "eth_requestAccounts",
           });
@@ -307,9 +310,7 @@ const BSCToken = ({ address }: any) => {
               },
             },
           });
-
         }
-       
       }
     } catch (error) {
       console.log(error);
@@ -324,10 +325,13 @@ const BSCToken = ({ address }: any) => {
   return (
     <div>
       <div className="flex justify-center mt-10">
-
-      <button onClick={()=>addToken(BSCTestnet)} disabled={loading ||!Boolean(token)} className="bg-black p-4  rounded-lg text-white">
-        {(token && `add ${token.name}`) || "loading..."}
-      </button>
+        <button
+          onClick={() => addToken(BSCTestnet)}
+          disabled={loading || !Boolean(token)}
+          className="bg-black p-4  rounded-lg text-white"
+        >
+          {(token && `add ${token.name}`) || "loading..."}
+        </button>
       </div>
     </div>
   );
