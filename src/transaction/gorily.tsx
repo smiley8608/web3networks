@@ -1,3 +1,5 @@
+import { Web3Provider } from "@ethersproject/providers";
+import axios from "axios";
 import { FormEvent, useEffect, useState } from "react";
 import Web3 from "web3";
 import config from "../config";
@@ -10,10 +12,12 @@ const Goeril = () => {
   const [data, setData] = useState<any>({ recipient: "", amount: "" });
   const [currentAccount, setCurrentAccount] = useState("");
   const [chainId, setchainId] = useState<number>();
+  // const value = Number(data.amount);
+  const network='Goerli'
 
   const createContract = () => {
     web3.setProvider(
-      "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+      ethereum|| "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
     );
 
     const contract = new web3.eth.Contract(
@@ -33,8 +37,8 @@ const Goeril = () => {
 useEffect(()=>{
   
 },[])
-  const getAddress = async (e: FormEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const getAddress = async () => {
+   
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
     });
@@ -43,70 +47,54 @@ useEffect(()=>{
 
     console.log(accounts[0]);
     alert(`accounts:${accounts[0]}`);
+    return accounts[0]
   };
+
+  
   const sendTransaction = async () => {
+    const currentAddress= await getAddress()
     setLoading(true)
     if (!ethereum) {
       setLoading(false)
       return console.log("please install ethereum");
     } else {
       try {
-        const value = Number(data.amount);
-        console.log(data.recipient, data.amount, currentAccount);
+        const amount=data.amount 
+        const value=web3.utils.toWei(data.amount, "ether")
+        const recipient=data.recipient
+        console.log(data.recipient, value, currentAddress);
 
         const Contract = createContract();
-        // console.log(Contract);
-        // const contractdata = await Contract.methods
-        //   .transfer(data.recipient, web3.utils.fromWei(data.amount, "wei"))
-        //   .call({ from: currentAccount });
-        // console.log(contractdata);
-       const transactionhash= await ethereum
-          .request({
-            method: "eth_sendTransaction",
-            params: [
-              {
-                from: currentAccount,
-                to: config.goerli.contractaddress,
-                gas: String(0x5208),
-                data: Contract.methods
-                  .transfer(
-                    data.recipient,
-                    web3.utils.toWei(data.amount, "ether")
-                  )
-                  .encodeABI(),
-                chainId: chainId,
-              },
-            ],
-          })
-          // .then(async (transactionhash: any) => {
-          //   console.log("result", transactionhash);
-          //   // await transactionhash.wait();
-          //   alert(`success${transactionhash}`);
-          // })
-          // .catch((error: any) => {
-          //   console.log(error);
-          // });
-         const hashObject= await ethereum.request({
-            method:'eth_getTransactionByHash',
-            params:[String(transactionhash),false],
-            id:1
-          })
+        console.log(Contract);
+         await Contract.methods.transfer(recipient, value).send({ from: currentAddress })
+         .then(async(success:any)=>{
+          console.log(success.transactionHash);
+          const transactionhash =await success.transactionHash
+          sendReceipt({recipient,amount,currentAddress,transactionhash})
+        }).catch((err:any)=>{
+          console.log(err);
           
-          console.log(loading);
-          console.log(hashObject);
-          // const transaction= await hashObject
+        })
+        
           
-          setLoading(false)
-          console.log(loading);
-          
-          alert(`success :${hashObject.hash}`)
-          
-        // console.log(transactionhash);
       } catch (error) {
         console.log(error);
       }
     }
   };
+  const sendReceipt =async ({recipient,amount,currentAddress,transactionhash}:any)=>{
+    axios.post('http://localhost:3002/addtransaction',{recipient,amount,currentAddress,transactionhash,network,chainId})
+    .then(responce=>{
+      console.log(responce.data);
+      alert(responce.data.message)
+      
+      
+    })
+    .catch(err=>{
+      console.log(err);
+      
+    })
+  }
 
   const submithandler = (e: FormEvent) => {
     e.preventDefault();
@@ -114,7 +102,7 @@ useEffect(()=>{
   };
   useEffect(() => {
     getchainId();
-    // getAddress();
+    
   }, []);
   return (
     <div>
@@ -153,7 +141,7 @@ useEffect(()=>{
                 onClick={submithandler}
                 className="bg-black p-4  rounded-lg text-white"
               >
-                ClickMe
+                send
               </button>
               <button
                 onClick={getAddress}
