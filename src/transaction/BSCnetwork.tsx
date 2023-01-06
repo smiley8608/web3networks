@@ -1,8 +1,10 @@
 import axios from "axios";
 import { FormEvent, useEffect, useState } from "react";
 import Web3 from "web3";
+import BSCToken from "../component/BSCToken";
 import config from "../config";
 import convert from "../functions/convert";
+import TransactionHistory from "../functions/transactionHistory";
 // import { ethers } from "ethers";
 
 const BSCNetwork = () => {
@@ -12,10 +14,13 @@ const BSCNetwork = () => {
   const network = "BSCTestNet";
   const [data, setData] = useState<any>({});
   const [currentAccount, setCurrentAccount] = useState("");
+  const [Transaction, setTransaction] = useState();
   const [chainId, setchainId] = useState<number>();
 
   const createContract = async () => {
-    await web3.setProvider(ethereum||"https://data-seed-prebsc-1-s1.binance.org:8545/");
+    await web3.setProvider(
+      ethereum || "https://data-seed-prebsc-1-s1.binance.org:8545/"
+    );
 
     // console.log(ethereum);
 
@@ -56,9 +61,9 @@ const BSCNetwork = () => {
       try {
         // console.log(data.recipient, typeof data.amount);
         const recipient = data.recipient;
-        const amount=data.amount
+        const amount = data.amount;
         console.log(currentAddress);
-        
+
         const value = web3.utils.toWei(data.amount, "ether");
 
         const Contract = await createContract();
@@ -68,11 +73,11 @@ const BSCNetwork = () => {
         await Contract.methods
           .transfer(recipient, value)
           .send({ from: currentAddress })
-          .then(async(sucess: any) => {
+          .then(async (sucess: any) => {
             console.log(sucess);
             console.log(sucess.transactionHash);
-            const transactionhash=await sucess.transactionHash
-            sendReceipt({recipient,amount,currentAddress,transactionhash});
+            const transactionhash = await sucess.transactionHash;
+            sendReceipt({ recipient, amount, currentAddress, transactionhash });
           })
           .catch((err: any) => {
             console.log(err);
@@ -82,12 +87,25 @@ const BSCNetwork = () => {
       }
     }
   };
-  const sendReceipt = ({recipient,amount,currentAddress,transactionhash}:any) => {
+  const sendReceipt = ({
+    recipient,
+    amount,
+    currentAddress,
+    transactionhash,
+  }: any) => {
     axios
-      .post('http://localhost:3002/addtransaction', {recipient,amount,currentAddress,transactionhash,network,chainId})
+      .post("http://localhost:3002/addtransaction", {
+        recipient,
+        amount,
+        currentAddress,
+        transactionhash,
+        network,
+        chainId,
+      })
       .then((responce) => {
         console.log(responce.data);
-        alert(responce.data.message)
+        alert(responce.data.message);
+        window.location.reload();
       })
       .catch((error) => {
         console.log(error);
@@ -104,8 +122,18 @@ const BSCNetwork = () => {
   };
   useEffect(() => {
     getchainId();
-    // getAddress()
-  }, []);
+    if (chainId) {
+      axios
+        .get(`http://localhost:3002/gethistory/?chain=${chainId}`)
+        .then((responce) => {
+          console.log(responce.data.Transaction);
+          setTransaction(responce.data.Transaction);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [chainId]);
   return (
     <div>
       <div className="w-full text-center mt-3">
@@ -151,6 +179,12 @@ const BSCNetwork = () => {
             </div>
           </form>
         </div>
+      </div>
+      <div className="mt-4">
+        <BSCToken address={"0x4B4Bf5D871Cf6eC659F6a16fe9129f8F1EdF27d3"} />
+      </div>
+      <div className="mt-3">
+        <TransactionHistory history={Transaction} />
       </div>
     </div>
   );

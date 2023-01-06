@@ -2,7 +2,9 @@ import { Web3Provider } from "@ethersproject/providers";
 import axios from "axios";
 import { FormEvent, useEffect, useState } from "react";
 import Web3 from "web3";
+import ImportToken from "../component/importtokens";
 import config from "../config";
+import TransactionHistory from "../functions/transactionHistory";
 
 const Goeril = () => {
   const { ethereum }: any = window;
@@ -11,6 +13,7 @@ const Goeril = () => {
 
   const [data, setData] = useState<any>({ recipient: "", amount: "" });
   const [currentAccount, setCurrentAccount] = useState("");
+  const [transaction,setTransaction]=useState([])
   const [chainId, setchainId] = useState<number>();
   // const value = Number(data.amount);
   const network='Goerli'
@@ -35,8 +38,23 @@ const Goeril = () => {
     setchainId(currentchainid);
   };
 useEffect(()=>{
-  
-},[])
+  getchainId();
+  if(chainId){
+
+    axios.get(`http://localhost:3002/gethistory/?chain=${chainId}`)
+    .then(responce=>{
+      console.log(responce.data.Transaction);
+      setTransaction(responce.data.Transaction)
+      
+    }).catch(error=>{
+      console.log(error);
+      
+    })
+  }else{
+    return console.log('canot find chainId');
+    
+  }
+},[chainId])
   const getAddress = async () => {
    
     const accounts = await ethereum.request({
@@ -87,6 +105,7 @@ useEffect(()=>{
     .then(responce=>{
       console.log(responce.data);
       alert(responce.data.message)
+      window.location.reload()
       
       
     })
@@ -101,7 +120,7 @@ useEffect(()=>{
     sendTransaction();
   };
   useEffect(() => {
-    getchainId();
+    
     
   }, []);
   return (
@@ -152,6 +171,12 @@ useEffect(()=>{
             </div>
           </form>
         </div>
+      </div>
+      <div className="mt-4">
+      <ImportToken address={"0x29B53aaABD2CAc4e1104bE1373D5B5aba9a4507A"}/>
+      </div>
+      <div className="mt-3">
+        <TransactionHistory history={transaction}/>
       </div>
     </div>
   );

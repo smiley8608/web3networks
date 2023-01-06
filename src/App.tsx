@@ -32,12 +32,12 @@ function App() {
       {
       (GoerliTestnet ===chainid)?<>
       <Goeril />
-      <ImportToken address={"0x29B53aaABD2CAc4e1104bE1373D5B5aba9a4507A"}/>
+      
       
       </>:<>{
         (BSCTestnet === chainid)?<>
         <BSCNetwork />
-        <BSCToken address={"0x4B4Bf5D871Cf6eC659F6a16fe9129f8F1EdF27d3"} />
+        
         </>:<>
         these Network are not available</>
 
