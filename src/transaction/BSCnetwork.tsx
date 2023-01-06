@@ -184,7 +184,7 @@ const BSCNetwork = () => {
         <BSCToken address={"0x4B4Bf5D871Cf6eC659F6a16fe9129f8F1EdF27d3"} />
       </div>
       <div className="mt-3">
-        <TransactionHistory history={Transaction} />
+        <TransactionHistory  />
       </div>
     </div>
   );

@@ -1,12 +1,21 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import DataTable, { createTheme } from "react-data-table-component";
-const TransactionHistory = ({ history }: any) => {
+import { PaginationChangePage } from "react-data-table-component/dist/src/DataTable/types";
+import Web3 from "web3";
+const TransactionHistory = () => {
   const [loading, setloading] = useState(true);
   const [Columns, setColumns] = useState<any>([]);
-
-  console.log(history);
+  const [data,setData]=useState([])
+  const [count,setCount]=useState(0)
+  
+  const [perpage,setperPage]=useState(10)
+  const {ethereum}:any=window
+  const web3=new Web3(ethereum)
+  // console.log(history);
   useEffect(() => {
-    //   setloading(true)
+    //   setloading(true)'
+    // fetchUser()
     const timeOut = setTimeout(() => {
       setColumns([
         {
@@ -84,19 +93,59 @@ const TransactionHistory = ({ history }: any) => {
       },
     },
   };
+  const getchainId=async ()=>{
+      const chainId=await web3.eth.getChainId()
+      console.log(chainId);
+      return chainId
+  }
+  
+  const fetchUser=async(page:any)=>{
+    setloading(true)
+    console.log(perpage);
+    
+   const chainId=await getchainId()
+    axios.get(`http://localhost:3002/gethistory/?chain=${chainId}&page=${page}&perpage=${perpage}`)
+    .then(responce=>{
+      console.log(responce.data);
+      setData(responce.data.Transaction)
+      setCount(responce.data.count)
+      
+    })
+    .catch(error=>{
+      console.log(error);
+      
+    })
+  }
+  const handleChangePage=(perPage:any,page:any)=>{
+    console.log(page);
+      
+    fetchUser(page)
+      
+  }
+  const handleChangeRowPerPage=(perPage:any,page:any)=>{
+    console.log(perPage,page);
+    setperPage(perPage)
+
+  }
+
 
   return (
     <div>
       <DataTable
         progressPending={loading}
         columns={Columns}
-        data={history}
+        data={data}
         pagination
         selectableRows
         customStyles={customStyle}
         highlightOnHover
         pointerOnHover
         theme="solarized"
+ 
+        onChangePage={handleChangePage}
+        paginationTotalRows={count}
+        onChangeRowsPerPage={handleChangeRowPerPage}
+        
       />
     </div>
   );

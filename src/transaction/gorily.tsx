@@ -39,21 +39,21 @@ const Goeril = () => {
   };
 useEffect(()=>{
   getchainId();
-  if(chainId){
+  // if(chainId){
 
-    axios.get(`http://localhost:3002/gethistory/?chain=${chainId}`)
-    .then(responce=>{
-      console.log(responce.data.Transaction);
-      setTransaction(responce.data.Transaction)
+  //   axios.get(`http://localhost:3002/gethistory/?chain=${chainId}`)
+  //   .then(responce=>{
+  //     console.log(responce.data.Transaction);
+  //     setTransaction(responce.data.Transaction)
       
-    }).catch(error=>{
-      console.log(error);
+  //   }).catch(error=>{
+  //     console.log(error);
       
-    })
-  }else{
-    return console.log('canot find chainId');
+  //   })
+  // }else{
+  //   return console.log('canot find chainId');
     
-  }
+  // }
 },[chainId])
   const getAddress = async () => {
    
@@ -176,7 +176,7 @@ useEffect(()=>{
       <ImportToken address={"0x29B53aaABD2CAc4e1104bE1373D5B5aba9a4507A"}/>
       </div>
       <div className="mt-3">
-        <TransactionHistory history={transaction}/>
+        <TransactionHistory />
       </div>
     </div>
   );
