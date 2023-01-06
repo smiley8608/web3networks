@@ -21,19 +21,26 @@ export const AddAccount=  (req:express.Request,res:express.Response)=>{
 
 }
 
-export const GetHistory=(req:express.Request,res:express.Response)=>{
+export const GetHistory=async(req:express.Request,res:express.Response)=>{
     console.log(req.query);
     
-    const {chain}=req.query
+    const {chain,page,perpage}:any=req.query
     console.log(chain);
-     AccountModel.find({chainId:chain})
+    console.log(page);
+    console.log(perpage);
+    const count=await AccountModel.find({chainId:chain}).countDocuments()
+    console.log(count);
+    
+     AccountModel.find({chainId:chain}).skip((page)*perpage).limit(perpage)
      .then((result)=>{
         if(result.length<1){
             return res.json({message:'These network does not contains any transaction history'})
         }else{
             console.log(result.length);
+            // console.log(result);
             
-            return res.json({Transaction:result})
+            
+            return res.json({Transaction:result,count:count})
         }
      })
      .catch(err=>{
