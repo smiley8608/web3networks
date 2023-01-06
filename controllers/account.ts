@@ -20,3 +20,26 @@ export const AddAccount=  (req:express.Request,res:express.Response)=>{
        .catch()
 
 }
+
+export const GetHistory=(req:express.Request,res:express.Response)=>{
+    console.log(req.query);
+    
+    const {chain}=req.query
+    console.log(chain);
+     AccountModel.find({chainId:chain})
+     .then((result)=>{
+        if(result.length<1){
+            return res.json({message:'These network does not contains any transaction history'})
+        }else{
+            console.log(result.length);
+            
+            return res.json({Transaction:result})
+        }
+     })
+     .catch(err=>{
+        console.log(err);
+        
+     })   
+
+
+}
