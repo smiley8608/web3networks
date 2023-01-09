@@ -5,22 +5,23 @@ import Web3 from "web3";
 import ImportToken from "../component/importtokens";
 import config from "../config";
 import TransactionHistory from "../functions/transactionHistory";
+import { Backdrop, Button, CircularProgress } from "@mui/material";
 
 const Goeril = () => {
   const { ethereum }: any = window;
   const web3 = new Web3(ethereum);
-  const [loading,setLoading]=useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [data, setData] = useState<any>({ recipient: "", amount: "" });
   const [currentAccount, setCurrentAccount] = useState("");
-  const [transaction,setTransaction]=useState([])
+  const [transaction, setTransaction] = useState([]);
   const [chainId, setchainId] = useState<number>();
   // const value = Number(data.amount);
-  const network='Goerli'
+  const network = "Goerli";
 
   const createContract = () => {
     web3.setProvider(
-      ethereum|| "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+      ethereum || "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
     );
 
     const contract = new web3.eth.Contract(
@@ -37,26 +38,25 @@ const Goeril = () => {
     console.log(currentchainid);
     setchainId(currentchainid);
   };
-useEffect(()=>{
-  getchainId();
-  // if(chainId){
+  useEffect(() => {
+    getchainId();
+    // if(chainId){
 
-  //   axios.get(`http://localhost:3002/gethistory/?chain=${chainId}`)
-  //   .then(responce=>{
-  //     console.log(responce.data.Transaction);
-  //     setTransaction(responce.data.Transaction)
-      
-  //   }).catch(error=>{
-  //     console.log(error);
-      
-  //   })
-  // }else{
-  //   return console.log('canot find chainId');
-    
-  // }
-},[chainId])
+    //   axios.get(`http://localhost:3002/gethistory/?chain=${chainId}`)
+    //   .then(responce=>{
+    //     console.log(responce.data.Transaction);
+    //     setTransaction(responce.data.Transaction)
+
+    //   }).catch(error=>{
+    //     console.log(error);
+
+    //   })
+    // }else{
+    //   return console.log('canot find chainId');
+
+    // }
+  }, [chainId]);
   const getAddress = async () => {
-   
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
     });
@@ -65,64 +65,83 @@ useEffect(()=>{
 
     console.log(accounts[0]);
     alert(`accounts:${accounts[0]}`);
-    return accounts[0]
+    return accounts[0];
   };
 
-  
   const sendTransaction = async () => {
-    const currentAddress= await getAddress()
-    setLoading(true)
+    const currentAddress = await getAddress();
     if (!ethereum) {
-      setLoading(false)
+      setLoading(false);
       return console.log("please install ethereum");
     } else {
       try {
-        const amount=data.amount 
-        const value=web3.utils.toWei(data.amount, "ether")
-        const recipient=data.recipient
-        console.log(data.recipient, value, currentAddress);
-
-        const Contract = createContract();
-        console.log(Contract);
-         await Contract.methods.transfer(recipient, value).send({ from: currentAddress })
-         .then(async(success:any)=>{
-          console.log(success.transactionHash);
-          const transactionhash =await success.transactionHash
-          sendReceipt({recipient,amount,currentAddress,transactionhash})
-        }).catch((err:any)=>{
-          console.log(err);
-          
-        })
+        const recipient = data.recipient;
+        console.log(Number(currentAddress) === Number(data.recipient));
         
-          
+        if (Number(currentAddress) === Number(data.recipient)) {
+          return alert("Sender and reciver canot be same");
+        } else {
+          // setLoading(true);
+          setLoading(true);
+          const amount = data.amount;
+          const value = web3.utils.toWei(data.amount, "ether");
+          console.log(data.recipient, value, currentAddress);
+
+          const Contract = createContract();
+          console.log(Contract);
+          await Contract.methods
+            .transfer(recipient, value)
+            .send({ from: currentAddress })
+            .then(async (success: any) => {
+              console.log(success.transactionHash);
+              const transactionhash = await success.transactionHash;
+              sendReceipt({
+                recipient,
+                amount,
+                currentAddress,
+                transactionhash,
+              });
+              setLoading(false);
+            })
+            .catch((err: any) => {
+              console.log(err);
+            });
+        }
       } catch (error) {
         console.log(error);
       }
     }
   };
-  const sendReceipt =async ({recipient,amount,currentAddress,transactionhash}:any)=>{
-    axios.post('http://localhost:3002/addtransaction',{recipient,amount,currentAddress,transactionhash,network,chainId})
-    .then(responce=>{
-      console.log(responce.data);
-      alert(responce.data.message)
-      window.location.reload()
-      
-      
-    })
-    .catch(err=>{
-      console.log(err);
-      
-    })
-  }
+  const sendReceipt = async ({
+    recipient,
+    amount,
+    currentAddress,
+    transactionhash,
+  }: any) => {
+    axios
+      .post("http://localhost:3002/addtransaction", {
+        recipient,
+        amount,
+        currentAddress,
+        transactionhash,
+        network,
+        chainId,
+      })
+      .then((responce) => {
+        console.log(responce.data);
+        alert(responce.data.message);
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const submithandler = (e: FormEvent) => {
     e.preventDefault();
     sendTransaction();
   };
-  useEffect(() => {
-    
-    
-  }, []);
+  useEffect(() => {}, []);
   return (
     <div>
       <div className="w-full text-center mt-3">
@@ -156,12 +175,22 @@ useEffect(()=>{
               />
             </div>
             <div className="flex justify-center mt-10 gap-x-10">
-              <button
+              <Button
                 onClick={submithandler}
-                className="bg-black p-4  rounded-lg text-white"
+                className="bg-black p-4  rounded-lg text-white" 
               >
-                send
-              </button>
+                Send
+              </Button>
+              <Backdrop
+                sx={{
+                  color: "#fff",
+                  zIndex: (theme) => theme.zIndex.drawer + 1,
+                }}
+                open={loading}
+                // onClick={handleClose}
+              >
+                <CircularProgress color="inherit" />
+              </Backdrop>
               <button
                 onClick={getAddress}
                 className="bg-black p-4  rounded-lg text-white"
@@ -173,7 +202,7 @@ useEffect(()=>{
         </div>
       </div>
       <div className="mt-4">
-      <ImportToken address={"0x29B53aaABD2CAc4e1104bE1373D5B5aba9a4507A"}/>
+        <ImportToken address={"0x29B53aaABD2CAc4e1104bE1373D5B5aba9a4507A"} />
       </div>
       <div className="mt-3">
         <TransactionHistory />

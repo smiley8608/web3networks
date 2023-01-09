@@ -78,7 +78,7 @@ const Connectnetworks = ({setchainId}:any) => {
         }
       }
     } else {
-      return console.log("You are in the same Network");
+      return alert("You are in the same Network");
     }
   };
   

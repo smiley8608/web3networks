@@ -142,8 +142,8 @@ const TransactionHistory = () => {
         pointerOnHover
         theme="solarized"
  
-        onChangePage={handleChangePage}
         paginationTotalRows={count}
+        onChangePage={handleChangePage}
         onChangeRowsPerPage={handleChangeRowPerPage}
         
       />

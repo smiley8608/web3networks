@@ -1,3 +1,4 @@
+import { Backdrop, Button, CircularProgress } from "@mui/material";
 import axios from "axios";
 import { FormEvent, useEffect, useState } from "react";
 import Web3 from "web3";
@@ -11,6 +12,7 @@ const BSCNetwork = () => {
   const { ethereum }: any = window;
   const web3 = new Web3(ethereum);
   const BSCTestnet = 97;
+  const [loading,setLoading]=useState<boolean>(false)
   const network = "BSCTestNet";
   const [data, setData] = useState<any>({});
   const [currentAccount, setCurrentAccount] = useState("");
@@ -41,6 +43,7 @@ const BSCNetwork = () => {
 
   const getAddress = async () => {
     if (!ethereum) {
+      console.log("Connectionerror");
       return console.log("Connectionerror");
     } else {
       const accounts = await ethereum.request({
@@ -49,6 +52,8 @@ const BSCNetwork = () => {
       setCurrentAccount(accounts[0]);
       localStorage.setItem("connectAddress", accounts[0]);
       alert(`Addresss:${accounts}`);
+      console.log(accounts[0]);
+      
       return accounts[0];
     }
   };
@@ -59,29 +64,41 @@ const BSCNetwork = () => {
       return console.log("please install metamask");
     } else {
       try {
-        // console.log(data.recipient, typeof data.amount);
         const recipient = data.recipient;
-        const amount = data.amount;
-        console.log(currentAddress);
+        console.log(currentAddress===recipient);
+        
+        
+        console.log('runnrs');
+        // console.log(data.recipient, typeof data.amount);
+        if(Number(currentAddress)===Number(recipient)){
+          alert('sender and reciver canot be same')
+return
+        }else{
+          setLoading(true)
 
-        const value = web3.utils.toWei(data.amount, "ether");
-
-        const Contract = await createContract();
-        console.log(Contract);
-        console.log(recipient);
-        console.log(value);
-        await Contract.methods
-          .transfer(recipient, value)
-          .send({ from: currentAddress })
-          .then(async (sucess: any) => {
-            console.log(sucess);
-            console.log(sucess.transactionHash);
-            const transactionhash = await sucess.transactionHash;
-            sendReceipt({ recipient, amount, currentAddress, transactionhash });
-          })
-          .catch((err: any) => {
-            console.log(err);
-          });
+          const amount = data.amount;
+          console.log(currentAddress);
+  
+          const value = web3.utils.toWei(data.amount, "ether");
+  
+          const Contract = await createContract();
+          console.log(Contract);
+          console.log(recipient);
+          console.log(value);
+          await Contract.methods
+            .transfer(recipient, value)
+            .send({ from: currentAddress })
+            .then(async (sucess: any) => {
+              console.log(sucess);
+              console.log(sucess.transactionHash);
+              const transactionhash = await sucess.transactionHash;
+              sendReceipt({ recipient, amount, currentAddress, transactionhash });
+              setLoading(false)
+            })
+            .catch((err: any) => {
+              console.log(err);
+            });
+        }
       } catch (error) {
         console.log(error);
       }
@@ -167,9 +184,22 @@ const BSCNetwork = () => {
               />
             </div>
             <div className="flex justify-center mt-10 gap-x-14">
-              <button className="bg-black p-4  rounded-lg text-white">
-                ClickMe
-              </button>
+            <Button
+                onClick={submithandler}
+                className="bg-black p-4  rounded-lg text-white" 
+              >
+                Send
+              </Button>
+              <Backdrop
+                sx={{
+                  color: "#fff",
+                  zIndex: (theme) => theme.zIndex.drawer + 1,
+                }}
+                open={loading}
+                // onClick={handleClose}
+              >
+                <CircularProgress color="inherit" />
+              </Backdrop>
               <button
                 onClick={getAddress}
                 className="bg-black p-4  rounded-lg text-white"
